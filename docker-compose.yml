@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  calculadora: # <-- CAMBIADO: Nombre del servicio en Docker
+    build: .
+    container_name: calculadora_flask # <-- CAMBIADO: Nombre del contenedor
+    restart: always
+    labels:
+      - "traefik.enable=true"
+
+      # Configuración HTTP (Redirección a HTTPS)
+      - "traefik.http.routers.calculadora.entrypoints=http"
+      - "traefik.http.routers.calculadora.rule=Host(`calculadora.byronrm.com`)" # <-- CAMBIADO: Tu nuevo subdominio
+      - "traefik.http.middlewares.calculadora-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.calculadora.middlewares=calculadora-https-redirect"
+
+      # Configuración HTTPS (Segura)
+      - "traefik.http.routers.calculadora-secure.entrypoints=https"
+      - "traefik.http.routers.calculadora-secure.rule=Host(`calculadora.byronrm.com`)" # <-- CAMBIADO: Tu nuevo subdominio
+      - "traefik.http.routers.calculadora-secure.tls=true"
+      - "traefik.http.routers.calculadora-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.calculadora-secure.service=calculadora"
+
+      # Puerto interno de Flask y Red de Traefik
+      - "traefik.http.services.calculadora.loadbalancer.server.port=5000"
+      - "traefik.docker.network=traefik-public"
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
