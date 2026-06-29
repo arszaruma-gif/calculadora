@@ -1,7 +1,7 @@
 # Makefile for Tecticom project
 
 # Variables
-IMAGE_NAME = ghcr.io/arszaruma-gif/holaflask:latests
+IMAGE_NAME = ghcr.io/arszaruma-gif/calculadora:latests
 STACK_FILE = stack.yml
 VPS_USERS = $(shell echo $$VPS_USERS)
 VPS_HOST = $(shell echo $$VPS_HOST)
