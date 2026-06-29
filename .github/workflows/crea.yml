@@ -78,8 +78,8 @@ jobs:
             cd ~/landinga
 
             # Autenticación segura y descarga de la imagen de la calculadora
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u arszaruma-gif ls--password-stdin
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u arszaruma-gif --password-stdin
             docker pull ghcr.io/arszaruma-gif/calculadora:latest
 
             echo "==> Desplegando stack..."
-            docker stack deploy -c stack.yml borrar
+            docker stack deploy -c stack.yml calculadora
