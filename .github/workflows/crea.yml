@@ -63,7 +63,7 @@ jobs:
           username: ${{ secrets.VPS_USERS }}
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_SSH_PORT }}
-          source: "stack.yml,docker-compose.yml" # Envía los archivos que manejen tu stack
+          source: "stack.yml" # <-- CORREGIDO: Si despliegas Swarm, solo necesitas enviar tu stack.yml
           target: "/home/${{ secrets.VPS_USERS }}/landinga"
 
       - name: Despliegue de los servicios
@@ -77,9 +77,10 @@ jobs:
             echo "✅ Desplegando servicios"        
             cd ~/landinga
 
-            # Autenticación segura y descarga de la imagen de la calculadora
+            # 1. Iniciar sesión en el registro desde el VPS
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u arszaruma-gif --password-stdin
-            docker pull ghcr.io/arszaruma-gif/calculadora:latest
 
+            # 2. Desplegar el stack enviando las credenciales de autenticación (--with-registry-auth)
+            # Pasarle la bandera '--with-registry-auth' evita que el proceso se quede colgado esperando la imagen.
             echo "==> Desplegando stack..."
-            docker stack deploy -c stack.yml calculadora
+            docker stack deploy --with-registry-auth -c stack.yml borrar
