@@ -1,4 +1,4 @@
-name: Publicar Imagen en GitHub Packages
+name: Publicar Imagen en GitHub Packages y Desplegar Swarm
 
 on:
   push:
@@ -43,3 +43,43 @@ jobs:
           push: true
           tags: |
             ghcr.io/arszaruma-gif/calculadora:latest
+
+      - name: Probar la SSH en el VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERS }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            echo "Probando conexion ssh el vps"
+            mkdir -p ~/landinga
+            touch ~/landinga/quintoa.txt
+
+      - name: Pasar archivos desde git al VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERS }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          source: "stack.yml,docker-compose.yml" # Envía los archivos que manejen tu stack
+          target: "/home/${{ secrets.VPS_USERS }}/landinga"
+
+      - name: Despliegue de los servicios
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERS }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            echo "✅ Desplegando servicios"        
+            cd ~/landinga
+
+            # Autenticación segura y descarga de la imagen de la calculadora
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u arszaruma-gif ls--password-stdin
+            docker pull ghcr.io/arszaruma-gif/calculadora:latest
+
+            echo "==> Desplegando stack..."
+            docker stack deploy -c stack.yml borrar
